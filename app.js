@@ -12,6 +12,7 @@ const DEFAULT_WORDS = [
 let words = [];
 let rate = 0.8;
 let voiceName = "";
+let splitMode = "words"; // "words" or "phrases" (see extract.js)
 let current = null;
 let answered = false;
 const score = { right: 0, total: 0 };
@@ -23,7 +24,22 @@ function speak(text, r = rate) {
 }
 
 function parseWords(s) {
+  if (splitMode === "phrases") return Extract.items(s, "phrases").map((i) => i.text);
   return [...new Set(s.split(/[\s,]+/).map((w) => w.trim()).filter(Boolean))];
+}
+
+// Words / Phrases switches (Words tab and Cards → Add) share one setting.
+const SPLIT_HINTS = {
+  words: "Words: 책을 펴세요 → two items, 책을 and 펴세요.",
+  phrases: "Phrases: each line is one item, 책을 펴세요 → one card. English under a Korean line becomes its translation.",
+};
+
+function setSplitMode(mode, save = true) {
+  splitMode = mode === "phrases" ? "phrases" : "words";
+  document.querySelectorAll(".split-seg button").forEach((b) => b.classList.toggle("active", b.dataset.split === splitMode));
+  document.querySelectorAll(".split-hint").forEach((h) => { h.textContent = SPLIT_HINTS[splitMode]; });
+  if (save) Platform.setSettings({ splitMode });
+  if (lastOcrText) renderFound();
 }
 
 function openYouGlish(text) {
@@ -59,6 +75,11 @@ function renderForms(container, word) {
   }
 }
 
+// Longer phrases take 2 or 4 grid columns so they stay readable.
+function sizeClass(text) {
+  return text.length > 10 ? "span4" : text.length > 5 ? "span2" : "";
+}
+
 function renderGrid() {
   const grid = $("grid");
   grid.innerHTML = "";
@@ -66,6 +87,7 @@ function renderGrid() {
   for (const w of words) {
     const b = document.createElement("button");
     b.textContent = w;
+    b.className = sizeClass(w);
     b.onclick = () => {
       speak(w);
       grid.querySelectorAll(".selected").forEach((x) => x.classList.remove("selected"));
@@ -109,6 +131,7 @@ function nextQuestion() {
   for (const w of options) {
     const b = document.createElement("button");
     b.textContent = w;
+    if (showAll) b.className = sizeClass(w);
     b.onclick = () => answer(w, b);
     box.appendChild(b);
   }
@@ -138,6 +161,7 @@ function answer(w, b) {
 // ---- Screenshot → words (OCR, runs locally with Tesseract) ----
 
 let ocrWorker = null;
+let lastOcrText = "";
 
 async function getOcrWorker() {
   if (!ocrWorker) {
@@ -161,30 +185,14 @@ async function readImage(blob) {
   $("ocr").hidden = false;
   $("ocrActions").hidden = true;
   $("found").innerHTML = "";
+  lastOcrText = "";
   $("preview").src = URL.createObjectURL(blob);
   $("ocrStatus").textContent = "Loading Korean text reader…";
   try {
     const worker = await getOcrWorker();
     const { data } = await worker.recognize(blob);
-    const found = [...new Set(data.text.match(/[가-힣]+/g) || [])];
-    if (!found.length) {
-      $("ocrStatus").textContent = "No Korean text found. Try a sharper or larger screenshot.";
-      return;
-    }
-    $("ocrStatus").textContent = `Found ${found.length} words. Uncheck any mistakes, click a word to hear it.`;
-    for (const w of found) {
-      const label = document.createElement("label");
-      const box = document.createElement("input");
-      box.type = "checkbox";
-      box.checked = true;
-      box.value = w;
-      const span = document.createElement("span");
-      span.textContent = w;
-      span.onclick = (e) => { e.preventDefault(); speak(w); };
-      label.append(box, span);
-      $("found").appendChild(label);
-    }
-    $("ocrActions").hidden = false;
+    lastOcrText = data.text;
+    renderFound();
   } catch (err) {
     console.error(err);
     ocrWorker = null;
@@ -192,8 +200,55 @@ async function readImage(blob) {
   }
 }
 
+// Found words/phrases as editable chips: uncheck misreads, or fix them in place
+// (e.g. OCR read 덮으세요 as 덮으세와).
+function renderFound() {
+  const found = Extract.items(lastOcrText, splitMode);
+  const box = $("found");
+  box.innerHTML = "";
+  box.classList.toggle("phrases", splitMode === "phrases");
+  if (!found.length) {
+    $("ocrStatus").textContent = "No Korean text found. Try a sharper or larger screenshot.";
+    $("ocrActions").hidden = true;
+    return;
+  }
+  const noun = splitMode === "phrases" ? "phrase" : "word";
+  $("ocrStatus").textContent = `Found ${found.length} ${noun}${found.length === 1 ? "" : "s"}. `
+    + "Uncheck mistakes, tap one to fix its spelling, 🔊 to hear it.";
+  for (const item of found) {
+    const label = document.createElement("label");
+    const box = document.createElement("input");
+    box.type = "checkbox";
+    // In phrase mode a lone syllable is almost always OCR noise.
+    box.checked = splitMode === "words" || item.text.length > 1;
+    const text = document.createElement("input");
+    text.className = "chip-text";
+    text.value = item.text;
+    text.size = Math.max(2, item.text.length * 2);
+    text.dataset.translation = item.translation;
+    const say = document.createElement("button");
+    say.type = "button";
+    say.textContent = "🔊";
+    say.onclick = (e) => { e.preventDefault(); speak(text.value); };
+    label.append(box, text, say);
+    label.title = item.translation;
+    box.addEventListener("change", () => label.classList.toggle("off", !box.checked));
+    label.classList.toggle("off", !box.checked);
+    $("found").appendChild(label);
+  }
+  $("ocrActions").hidden = false;
+}
+
+function checkedItems() {
+  return [...$("found").querySelectorAll("label")]
+    .filter((l) => l.querySelector("input[type=checkbox]").checked)
+    .map((l) => l.querySelector(".chip-text"))
+    .map((t) => ({ text: t.value.trim(), translation: t.dataset.translation || "" }))
+    .filter((i) => i.text);
+}
+
 function checkedFound() {
-  return [...$("found").querySelectorAll("input:checked")].map((b) => b.value);
+  return checkedItems().map((i) => i.text);
 }
 
 async function saveWords(list) {
@@ -230,7 +285,7 @@ function setupOcr() {
   $("file").onchange = (e) => { if (e.target.files[0]) readImage(e.target.files[0]); };
   $("ocrReplace").onclick = () => saveWords(checkedFound());
   $("ocrAdd").onclick = () => saveWords([...words, ...checkedFound()]);
-  $("ocrCards").onclick = () => Cards.startAdding(checkedFound());
+  $("ocrCards").onclick = () => Cards.startAdding(checkedItems());
   if (Platform.openFullPage) {
     $("openTab").onclick = (e) => { e.preventDefault(); Platform.openFullPage(); };
   } else {
@@ -255,11 +310,13 @@ async function loadVoices() {
 }
 
 async function init() {
-  const data = await Platform.getSettings(["words", "rate", "voiceName", "allChoices"]);
+  const data = await Platform.getSettings(["words", "rate", "voiceName", "allChoices", "splitMode"]);
   words = data.words?.length ? data.words : DEFAULT_WORDS.slice();
   rate = data.rate ?? 0.8;
   voiceName = data.voiceName ?? "";
   $("allChoices").checked = !!data.allChoices;
+  setSplitMode(data.splitMode, false);
+  document.querySelectorAll(".split-seg button").forEach((b) => { b.onclick = () => setSplitMode(b.dataset.split); });
 
   $("wordList").value = words.join("\n");
   $("rate").value = rate;
@@ -300,7 +357,7 @@ async function init() {
     speak("안녕하세요");
   };
 
-  await Cards.init({ speak, renderForms, getWords: () => words, showTab });
+  await Cards.init({ speak, renderForms, getWords: () => words, showTab, getSplitMode: () => splitMode });
   // Words captured from a page (or shared to the app) are waiting: go straight to adding them as cards.
   const pending = await Platform.takePendingWords();
   if (pending.length) Cards.startAdding(pending);

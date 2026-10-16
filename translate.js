@@ -23,8 +23,9 @@ const Translator = (() => {
     return res.json();
   }
 
-  // "School" → "school", but leave "Seoul" / "TV" alone.
-  const tidy = (t) => (/^[A-Z][a-z]/.test(t) && !/^(I|Seoul|Korea\w*|English)\b/.test(t) ? t[0].toLowerCase() + t.slice(1) : t).trim();
+  // "School" → "school", but leave "Seoul" / "TV" alone. Phrases keep sentence case
+  // ("Open the book."), as on the class slides.
+  const tidy = (t, word) => /\s/.test(word) ? t.trim().replace(/^[a-z]/, (c) => c.toUpperCase()) : (/^[A-Z][a-z]/.test(t) && !/^(I|Seoul|Korea\w*|English)\b/.test(t) ? t[0].toLowerCase() + t.slice(1) : t).trim();
 
   // Dictionary-form verbs read better as "to go" than "go".
   function verbify(text, pos, word) {
@@ -36,7 +37,7 @@ const Translator = (() => {
     const url = "https://translate.googleapis.com/translate_a/single?client=gtx&sl=ko&tl=en&dt=t&dt=bd&q="
       + encodeURIComponent(word);
     const data = await fetchJson(url, google);
-    const main = tidy((data[0] || []).map((s) => s[0]).join(""));
+    const main = tidy((data[0] || []).map((s) => s[0]).join(""), word);
     if (!main) return null;
     const dict = data[1] || []; // [[partOfSpeech, [words…], …], …]
     const pos = dict[0]?.[0] || "";
@@ -53,7 +54,7 @@ const Translator = (() => {
     const data = await fetchJson("https://clients5.google.com/translate_a/t?client=dict-chrome-ex&sl=ko&tl=en&q="
       + encodeURIComponent(word), googleDict);
     const raw = Array.isArray(data) ? data.flat(2)[0] : data?.sentences?.[0]?.trans;
-    return raw ? { text: verbify(tidy(String(raw)), "", word), alts: [], source: "Google" } : null;
+    return raw ? { text: verbify(tidy(String(raw), word), "", word), alts: [], source: "Google" } : null;
   }
 
   // MyMemory mixes machine/professional translations with anonymous web snippets
@@ -63,7 +64,7 @@ const Translator = (() => {
     const good = (data.matches || [])
       .filter((m) => /^(MT!|MateCat)$/.test(m["created-by"]) && m.translation?.trim())
       .sort((a, b) => (b.quality || 0) - (a.quality || 0) || (b.match || 0) - (a.match || 0))
-      .map((m) => tidy(m.translation.replace(/[.。]+$/, "")));
+      .map((m) => tidy(m.translation.replace(/[.。]+$/, ""), word));
     const unique = [...new Set(good)];
     return unique.length ? { text: unique[0], alts: unique.slice(1, 5), source: "MyMemory" } : null;
   }

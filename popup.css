@@ -39,7 +39,6 @@ textarea { width: 100%; box-sizing: border-box; font-size: 15px; font-family: in
 #preview { max-width: 100%; max-height: 140px; display: block; margin: 0 auto 6px; border: 1px solid #ddd; border-radius: 6px; }
 .chips { display: flex; flex-wrap: wrap; gap: 6px; }
 .chips label { display: flex; align-items: center; gap: 4px; padding: 4px 8px; border: 1px solid #ccc; border-radius: 14px; font-size: 15px; cursor: pointer; }
-.chips label:has(input:not(:checked)) { opacity: 0.45; text-decoration: line-through; }
 .chips input { margin: 0; }
 #settings label { display: block; margin-bottom: 12px; }
 #settings input, #settings select { width: 100%; margin-top: 4px; }
@@ -83,3 +82,21 @@ button.inline { padding: 1px 6px; font-size: 12px; }
 #deckFilter { width: 100%; box-sizing: border-box; padding: 6px; margin-bottom: 6px; border: 1px solid #ccc; border-radius: 6px; }
 #view-add .row a { font-size: 12px; margin-left: auto; }
 code { font-size: 12px; background: #f1f1f1; padding: 0 3px; border-radius: 3px; }
+
+/* Words / Phrases */
+.split-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+.split-row .hint { margin: 0; }
+.grid button { word-break: keep-all; }
+.grid button.span2 { grid-column: span 2; }
+.grid button.span4 { grid-column: span 4; }
+#choices button { word-break: keep-all; }
+.card-front.long { font-size: 30px; line-height: 1.3; }
+.add-row .word { max-width: 48%; text-align: left; word-break: keep-all; }
+.chips label { padding: 2px 4px 2px 8px; }
+.chips label.off { opacity: 0.45; }
+.chips label.off .chip-text { text-decoration: line-through; }
+.chips .chip-text { border: none; background: transparent; font: inherit; font-size: 15px; padding: 2px 0; min-width: 2em; max-width: 100%; }
+.chips .chip-text:focus { outline: 1px solid #2563eb; background: #fff; border-radius: 4px; }
+.chips label button { border: none; background: none; cursor: pointer; padding: 0 2px; font-size: 13px; }
+.chips.phrases label { width: 100%; box-sizing: border-box; }
+.chips.phrases .chip-text { flex: 1; }

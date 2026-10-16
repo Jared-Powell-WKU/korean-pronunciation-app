@@ -37,7 +37,7 @@ const Cards = (() => {
   // ---- views ----
 
   function showView(name) {
-    document.querySelectorAll("#cards .seg button").forEach((b) => b.classList.toggle("active", b.dataset.view === name));
+    document.querySelectorAll("#cards .view-seg button").forEach((b) => b.classList.toggle("active", b.dataset.view === name));
     document.querySelectorAll("#cards .cview").forEach((v) => v.classList.toggle("active", v.id === "view-" + name));
     if (name === "study") nextCard();
     if (name === "deck") renderDeck();
@@ -72,6 +72,7 @@ const Cards = (() => {
     $("studyEmpty").hidden = true;
     $("studyCard").hidden = false;
     $("cardFront").textContent = current.word;
+    $("cardFront").classList.toggle("long", current.word.length > 6);
     $("cardTag").textContent = current.seen ? SRS.dueLabel(current) === "due now" ? "review" : "learning" : "new";
   }
 
@@ -180,29 +181,26 @@ const Cards = (() => {
 
   // ---- adding cards ----
 
-  function startAdding(words) {
+  // items: strings, or { text, translation } (e.g. from a screenshot with English under each phrase).
+  function startAdding(items) {
     ui.showTab("cards");
     showView("add");
-    $("addInput").value = words.join("\n");
+    $("addInput").value = items
+      .map((i) => (typeof i === "string" ? i : i.translation ? `${i.text}\t${i.translation}` : i.text))
+      .join("\n");
     translateInput();
   }
 
-  // Lines may be "word" or "word, translation" / "word<TAB>translation".
+  // Split by the Words / Phrases switch (extract.js). Lines may carry their own
+  // translation: "word, meaning", "word<TAB>meaning", or an English line underneath.
   function parseInput(text) {
-    const rows = [];
-    for (const line of text.split(/\n/)) {
-      const m = line.match(/^\s*([가-힣]+)\s*[\t,;:=]\s*(.+?)\s*$/);
-      if (m) { rows.push({ word: m[1], translation: m[2] }); continue; }
-      for (const w of line.match(HANGUL_RUN) || []) rows.push({ word: w, translation: "" });
-    }
-    const seen = new Set();
-    return rows.filter((r) => !seen.has(r.word) && seen.add(r.word));
+    return Extract.items(text, ui.getSplitMode()).map((i) => ({ word: i.text, translation: i.translation }));
   }
 
   async function translateInput() {
     const parsed = parseInput($("addInput").value);
     const already = parsed.filter((r) => deck[r.word]);
-    pendingRows = parsed.filter((r) => !deck[r.word]).map((r) => ({ ...r, alts: [], source: r.translation ? "yours" : "" }));
+    pendingRows = parsed.filter((r) => !deck[r.word]).map((r) => ({ ...r, alts: [], source: r.translation ? "given" : "" }));
     $("addReview").hidden = false;
     const skipped = already.length ? ` ${already.length} already in your deck (skipped).` : "";
     if (!pendingRows.length) {
@@ -340,7 +338,7 @@ const Cards = (() => {
     opts.newPerDay = s.newPerDay ?? 16;
     opts.speakOnReveal = s.speakOnReveal ?? true;
 
-    document.querySelectorAll("#cards .seg button").forEach((b) => { b.onclick = () => showView(b.dataset.view); });
+    document.querySelectorAll("#cards .view-seg button").forEach((b) => { b.onclick = () => showView(b.dataset.view); });
     $("cardFlip").onclick = flip;
     $("cardFront").onclick = flip;
     $("cardHear").onclick = () => current && ui.speak(current.word);

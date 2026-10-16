@@ -99,9 +99,15 @@ const KoreanConjugator = (() => {
   }
 
   // Returns [{ label, text }], always starting with the word itself.
+  // For a phrase ending in a dictionary-form verb (책을 읽다) only the last word changes.
   function forms(word) {
-    const w = word.trim();
+    const w = word.trim().replace(/\s+/g, " ");
     const out = [{ label: "as written", text: w }];
+    const cut = w.lastIndexOf(" ");
+    if (cut > 0) {
+      const head = w.slice(0, cut + 1);
+      return forms(w.slice(cut + 1)).map((f, i) => (i === 0 ? out[0] : { label: f.label, text: head + f.text }));
+    }
     if (w.length < 2 || !w.endsWith("다") || ![...w].every(isHangul)) return out;
 
     const stem = w.slice(0, -1);

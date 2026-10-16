@@ -1,10 +1,10 @@
 // Offline support: the app's own files are cached so it opens without a connection.
 // Translation requests (other sites) always go to the network.
 // tools/sync.mjs bumps VERSION whenever it copies new files, so phones pick up updates.
-const VERSION = "368a1028f0";
+const VERSION = "b6e4ecb353";
 const CACHE = "kpp-" + VERSION;
 const SHELL = [
-  "./", "index.html", "popup.css", "web.css", "platform.js", "conjugate.js", "srs.js",
+  "./", "index.html", "popup.css", "web.css", "platform.js", "conjugate.js", "extract.js", "srs.js",
   "translate.js", "cards.js", "app.js", "manifest.webmanifest", "icons/icon-192.png",
   "lib/tesseract.min.js",
 ];

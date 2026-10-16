@@ -15,7 +15,7 @@ if (!existsSync(join(ext, "manifest.json"))) {
   process.exit(1);
 }
 
-const SHARED = ["app.js", "cards.js", "conjugate.js", "srs.js", "translate.js", "popup.css"];
+const SHARED = ["app.js", "cards.js", "conjugate.js", "extract.js", "srs.js", "translate.js", "popup.css"];
 for (const f of SHARED) cpSync(join(ext, f), join(app, f));
 cpSync(join(ext, "lib"), join(app, "lib"), { recursive: true });
 

@@ -49,7 +49,7 @@
   <section id="cards" class="tab">
     <div class="cards-bar">
       <span id="cardStats" class="hint"></span>
-      <div class="seg">
+      <div class="seg view-seg">
         <button data-view="study" class="active">Study</button>
         <button data-view="add">Add</button>
         <button data-view="deck">Deck</button>
@@ -85,9 +85,16 @@
     </div>
 
     <div id="view-add" class="cview">
-      <p class="hint">Korean words, one per line (spaces and commas also work). Add
-        <code>word, meaning</code> to set your own translation.</p>
-      <textarea id="addInput" rows="5" placeholder="가다&#10;오다, to come"></textarea>
+      <div class="split-row">
+        <span class="hint">Split into</span>
+        <div class="seg split-seg">
+          <button data-split="words" class="active">Words</button>
+          <button data-split="phrases">Phrases</button>
+        </div>
+      </div>
+      <p class="hint split-hint"></p>
+      <p class="hint">Add <code>word, meaning</code> (or an English line underneath) to set your own translation.</p>
+      <textarea id="addInput" rows="5" placeholder="가다&#10;오다, to come&#10;책을 펴세요&#10;Open the book."></textarea>
       <div class="row">
         <button id="addTranslate">Translate</button>
         <button id="addFromList">Use my word list</button>
@@ -113,6 +120,14 @@
   </section>
 
   <section id="words" class="tab">
+    <div class="split-row">
+      <span class="hint">Split into</span>
+      <div class="seg split-seg">
+        <button data-split="words" class="active">Words</button>
+        <button data-split="phrases">Phrases</button>
+      </div>
+    </div>
+    <p class="hint split-hint"></p>
     <div id="drop" class="drop" tabindex="0">
       📷 <b>Take a photo or pick a screenshot</b><br>
       <span class="hint"><a href="#" id="pick">Tap here</a> to use the camera or your photos (or paste / drop an image)</span>
@@ -128,7 +143,7 @@
         <button id="ocrCards">Make flashcards</button>
       </div>
     </div>
-    <p class="hint">One word per line (spaces and commas also work).
+    <p class="hint">Your list for Listen and Quiz: one item per line.
       <a href="#" id="openTab">Open in a tab</a></p>
     <textarea id="wordList" rows="12"></textarea>
     <div class="row">
@@ -156,6 +171,7 @@
   <script src="lib/tesseract.min.js"></script>
   <script src="platform.js"></script>
   <script src="conjugate.js"></script>
+  <script src="extract.js"></script>
   <script src="srs.js"></script>
   <script src="translate.js"></script>
   <script src="cards.js"></script>
