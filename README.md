@@ -42,7 +42,15 @@ node tools/sync.mjs
 ```
 This copies `app.js`, `cards.js`, `srs.js`, `translate.js`, `conjugate.js`, `popup.css` and `lib/`,
 rebuilds `index.html` from the extension's `popup.html`, and bumps the offline-cache version so
-installed copies update the next time they're opened online. Then re-upload the folder.
+installed copies update the next time they're opened online. Then publish it:
+```
+git add -A
+git commit -m "Sync from extension"
+git push
+```
+The live copy is https://jared-powell-wku.github.io/korean-pronunciation-app/ (GitHub Pages, from the
+`main` branch of github.com/Jared-Powell-WKU/korean-pronunciation-app); it updates about a minute
+after each push.
 
 Files that belong to the web app and are never overwritten: `platform.js` (speech and storage for
 browsers), `web.css` (phone layout), `sw.js` (offline cache), `manifest.webmanifest` (install, share
