@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Korean Pronunciation</title>
+  <link rel="stylesheet" href="popup.css">
+  <link rel="stylesheet" href="web.css">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <meta name="theme-color" content="#2563eb">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Korean">
+</head>
+<body>
+  <nav>
+    <button data-tab="listen" class="active">Listen</button>
+    <button data-tab="quiz">Quiz</button>
+    <button data-tab="cards">Cards</button>
+    <button data-tab="words">Words</button>
+    <button data-tab="settings">⚙</button>
+  </nav>
+
+  <section id="listen" class="tab active">
+    <p class="hint">Click a word to hear it and see real-video examples.</p>
+    <div id="grid" class="grid"></div>
+    <div id="detail" hidden>
+      <h3 id="detailWord"></h3>
+      <p class="hint">🎬 opens YouGlish: YouTube clips of native speakers saying it.
+        Conjugated forms are what people actually say in conversation.</p>
+      <div id="forms"></div>
+    </div>
+  </section>
+
+  <section id="quiz" class="tab">
+    <div class="quiz-top">
+      <button id="replay" class="big">🔊 Play</button>
+      <button id="replaySlow">🐢 Slow</button>
+      <span id="score">0 / 0</span>
+    </div>
+    <p id="feedback" class="hint">Listen, then pick the word you heard.</p>
+    <div id="choices" class="grid"></div>
+    <div id="quizForms" hidden></div>
+    <button id="next" class="next">Next ▶</button>
+    <label class="opt"><input type="checkbox" id="allChoices"> Show all words as choices</label>
+  </section>
+
+  <section id="cards" class="tab">
+    <div class="cards-bar">
+      <span id="cardStats" class="hint"></span>
+      <div class="seg">
+        <button data-view="study" class="active">Study</button>
+        <button data-view="add">Add</button>
+        <button data-view="deck">Deck</button>
+      </div>
+    </div>
+
+    <div id="view-study" class="cview active">
+      <div id="studyCard" hidden>
+        <div class="card">
+          <span id="cardTag" class="card-tag"></span>
+          <div id="cardFront" class="card-front" title="Read it aloud, then flip"></div>
+          <p class="hint center">Read it aloud first, then check yourself.</p>
+          <div class="card-tools">
+            <button id="cardHear">🔊 Hear</button>
+            <button id="cardSlow">🐢</button>
+            <button id="cardSay">🎤 Say it</button>
+          </div>
+          <p id="sayResult" class="hint center"></p>
+        </div>
+        <button id="cardFlip" class="next">Show answer</button>
+        <div id="cardBack" hidden>
+          <div id="cardTranslation" class="card-translation"></div>
+          <div id="cardForms"></div>
+          <div class="grades">
+            <button data-grade="0" class="again">Again<small></small></button>
+            <button data-grade="1" class="hard">Hard<small></small></button>
+            <button data-grade="2" class="good">Good<small></small></button>
+            <button data-grade="3" class="easy">Easy<small></small></button>
+          </div>
+        </div>
+      </div>
+      <p id="studyEmpty" class="empty" hidden></p>
+    </div>
+
+    <div id="view-add" class="cview">
+      <p class="hint">Korean words, one per line (spaces and commas also work). Add
+        <code>word, meaning</code> to set your own translation.</p>
+      <textarea id="addInput" rows="5" placeholder="가다&#10;오다, to come"></textarea>
+      <div class="row">
+        <button id="addTranslate">Translate</button>
+        <button id="addFromList">Use my word list</button>
+        <a href="#" id="importLink">Import file…</a>
+      </div>
+      <div id="addReview" hidden>
+        <p id="addStatus" class="hint"></p>
+        <div id="addRows"></div>
+        <button id="addConfirm" class="next">Add cards</button>
+      </div>
+    </div>
+
+    <div id="view-deck" class="cview">
+      <input id="deckFilter" type="search" placeholder="Search your cards">
+      <div id="deckRows"></div>
+      <div class="row">
+        <button id="deckExport">Export deck</button>
+        <button id="deckImport">Import…</button>
+      </div>
+      <p class="hint">Export and import to move your deck between computer and phone.</p>
+    </div>
+    <input type="file" id="importFile" accept=".json,.txt,.csv,.tsv,text/*,application/json" hidden>
+  </section>
+
+  <section id="words" class="tab">
+    <div id="drop" class="drop" tabindex="0">
+      📷 <b>Take a photo or pick a screenshot</b><br>
+      <span class="hint"><a href="#" id="pick">Tap here</a> to use the camera or your photos (or paste / drop an image)</span>
+      <input type="file" id="file" accept="image/*" hidden>
+    </div>
+    <div id="ocr" hidden>
+      <img id="preview" alt="">
+      <p id="ocrStatus" class="hint"></p>
+      <div id="found" class="chips"></div>
+      <div class="row" id="ocrActions" hidden>
+        <button id="ocrReplace">Replace list</button>
+        <button id="ocrAdd">Add to list</button>
+        <button id="ocrCards">Make flashcards</button>
+      </div>
+    </div>
+    <p class="hint">One word per line (spaces and commas also work).
+      <a href="#" id="openTab">Open in a tab</a></p>
+    <textarea id="wordList" rows="12"></textarea>
+    <div class="row">
+      <button id="save">Save</button>
+      <button id="reset">Reset to defaults</button>
+      <span id="saved"></span>
+    </div>
+  </section>
+
+  <section id="settings" class="tab">
+    <label>Speed <span id="rateVal"></span>
+      <input type="range" id="rate" min="0.4" max="1.4" step="0.1">
+    </label>
+    <label>Voice
+      <select id="voice"></select>
+    </label>
+    <label>New flashcards per day
+      <input type="number" id="newPerDay" min="1" max="200">
+    </label>
+    <label class="check"><input type="checkbox" id="speakOnReveal"> Play the word when a card is flipped</label>
+    <p class="hint tip">Tip: highlight Korean text on any page and click the 🔊 bubble,
+      right-click → "Speak in Korean", or press Alt+K. ➕ in the bubble adds the words to your flashcards.</p>
+  </section>
+
+  <script src="lib/tesseract.min.js"></script>
+  <script src="platform.js"></script>
+  <script src="conjugate.js"></script>
+  <script src="srs.js"></script>
+  <script src="translate.js"></script>
+  <script src="cards.js"></script>
+  <script src="app.js"></script>
+  <script>
+    if ("serviceWorker" in navigator && location.protocol !== "file:") {
+      // When an updated version installs, reload once so it's used right away.
+      const hadController = !!navigator.serviceWorker.controller;
+      navigator.serviceWorker.addEventListener("controllerchange", () => { if (hadController) location.reload(); });
+      navigator.serviceWorker.register("sw.js");
+    }
+  </script>
+</body>
+</html>

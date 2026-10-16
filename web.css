@@ -1,0 +1,37 @@
+/* Phone / full-page layout on top of the shared popup.css. */
+html { -webkit-text-size-adjust: 100%; background: #fff; }
+body {
+  width: auto;
+  max-width: 560px;
+  min-height: 100vh;
+  font-size: 16px;
+  padding: 0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+nav {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: #fff;
+  padding-top: env(safe-area-inset-top);
+}
+nav button { padding: 14px 0; font-size: 15px; }
+.tab { padding: 14px 16px 24px; }
+.hint { font-size: 13px; }
+.grid { gap: 8px; }
+.grid button { padding: 14px 2px; font-size: 19px; }
+#choices button { font-size: 24px; padding: 18px 2px; }
+.quiz-top button, .row button, .seg button, .card-tools button { padding: 10px 14px; font-size: 15px; }
+.next { padding: 13px; font-size: 16px; }
+.form-row { padding: 8px 0; }
+.form-row .text { font-size: 18px; }
+.form-row button { padding: 8px 10px; font-size: 14px; }
+.card-front { font-size: 56px; }
+.card-translation { font-size: 26px; }
+.grades button { padding: 12px 2px; font-size: 15px; }
+.add-row { padding: 6px 0; }
+.add-row input, #deckFilter, textarea, select, #settings input[type=number] { font-size: 16px; padding: 8px; } /* 16px stops iOS zooming in */
+.add-row .word { min-width: 72px; padding: 8px; font-size: 17px; }
+.add-row .x { padding: 8px; }
+#preview { max-height: 220px; }
+.tip { display: none; } /* extension-only shortcuts */
+button { -webkit-tap-highlight-color: transparent; color: inherit; }
